@@ -1,1 +1,18 @@
-env
+# Virtual environments
+env/
+.venv/
+venv/
+
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Django local database and uploads
+db.sqlite3
+media/
+staticfiles/
+
+# Environment files
+.env
+.env.*
