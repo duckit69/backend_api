@@ -48,6 +48,9 @@ class Product(models.Model):
         
         super().save(*args, **kwargs)
 
+    def __str__(self):
+        return f"{self.name} has a price of {self.price}"
+
 class Review(models.Model):
 
     RATING_CHOICES = [
@@ -72,4 +75,57 @@ class Review(models.Model):
     class Meta:
         unique_together = ['user', 'product']
         # show recent reviews first
-        ordering = ['created_at'] 
+        ordering = ['created_at']
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        # run this after creating
+        self.update_product_rating()
+
+    def update_product_rating(self):
+        # Retrieve all reviews for this product
+        reviews = Review.objects.filter(product= self.product)
+
+        total_reviews = reviews.count()
+
+        if total_reviews > 0:
+            average_rating = sum(r.rating for r in reviews) / total_reviews
+        else:
+            average_rating = 0.0
+
+        # Create or Udpate ProductRating
+        product_rating, created = ProductRating.objects.get_or_create(product = self.product)
+        product_rating.average_rating = round(average_rating, 2)
+        product_rating.total_reviews = total_reviews
+        product_rating.save()
+
+    def delete(self, *args, **kwargs):
+
+        super().delete(*args, **kwargs)
+        reviews = Review.objects.filter(product=self.product)
+
+        total_reviews = reviews.count()
+
+
+        if total_reviews > 0:
+            average_rating = sum(r.rating for r in reviews) / total_reviews
+        else:
+            average_rating = 0.0
+
+        product_rating, created = ProductRating.objects.get_or_create(product = self.product)
+        product_rating.average_rating = round(average_rating, 2)
+        product_rating.total_reviews = total_reviews
+        product_rating.save()
+        
+
+
+
+# seperate model to track the product ratings and average to reduce loading the entire product object every time
+class ProductRating(models.Model):
+    product = models.OneToOneField(Product, on_delete=models.CASCADE, related_name='rating')
+    average_rating = models.FloatField(default=0.0)
+    total_reviews = models.PositiveIntegerField(default=0)
+
+    def __str__(self):
+        return f"{self.product.name} - {self.average_rating} ({self.total_reviews} reviews)"
+

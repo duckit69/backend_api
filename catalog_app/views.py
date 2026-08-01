@@ -31,15 +31,37 @@ def category_detail(request, slug):
     serializer = CategoryDetailSerializer(category)
     return Response(serializer.data)
 
-@api_view(['POST'])
-def add_review(request, product_id):
+@api_view(['POST', 'PUT', 'DELETE'])
+def review_manager(request, product_id):
     user = request.user
     rating = request.data.get('rating')
     review = request.data.get('review')
 
     product = Product.objects.get(id=product_id)
 
-    review_obj = Review.objects.create(product=product, user=user, rating = rating, review = review)
-    serializer = ReviewSerializer(review_obj)
+    if request.method == 'POST':
+        if Review.objects.filter(user=user, product=product).exists():
+            return Response( 
+                    {
+                        'error': 'You have already reviewed this product',
+                        'message': 'Duplicate review not allowed',
+                    },
+                    status=409  
+                )
+        
+        review_obj = Review.objects.create(product=product, user=user, rating = rating, review = review)
 
+    elif request.method == 'PUT':
+        review_obj = Review.objects.get(product=product, user=user)
+        review_obj.rating = rating
+        review_obj.review = review    
+        review_obj.save()
+
+    elif request.method == 'DELETE':
+        review_obj = Review.objects.get(product=product, user=user)
+        review_obj.delete()
+
+    serializer = ReviewSerializer(review_obj)
     return Response(serializer.data)
+
+
