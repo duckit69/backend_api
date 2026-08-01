@@ -17,7 +17,7 @@ class CartItem(models.Model):
     quantity = models.PositiveSmallIntegerField(default=1)
 
     def __str__(self):
-        return f"{self.product.name} with {self.quantity} in + {self.cart.cart_code}"
+        return f"product id: {self.product.id} with {self.quantity} quantity in cart number: {self.cart.cart_code}"
 
 
 # it will be more better if we add another class for wishlist item 

@@ -10,7 +10,7 @@ from .serializers import CartItemSerializer, CartSerializer, WishListSerializer
 from catalog_app.models import Product
 
 @api_view(['POST'])
-def add_item_to_cart(request, cart_code):
+def cart_item_manager(request, cart_code):
     product_id = request.data.get('product_id')
 
     cart, created = Cart.objects.get_or_create(cart_code=cart_code)
@@ -23,6 +23,20 @@ def add_item_to_cart(request, cart_code):
     serializer = CartSerializer(cart)
 
     return Response(serializer.data)
+@api_view(['DELETE'])
+def cart_item_manager(request, cart_code):
+    product_id = request.data.get('product_id')
+    cart = Cart.objects.get(cart_code=cart_code)
+    cart_item = CartItem.objects.get(cart=cart, product_id=product_id)
+    cart_item.delete()
+    serializer = CartItemSerializer(cart_item)
+    return Response (
+        {
+            'message': 'Item removed',
+            'data': serializer.data
+        }
+    )
+
 
 @api_view(['PATCH'])
 def update_cart_item_quantity(request, cart_code, item_id):
