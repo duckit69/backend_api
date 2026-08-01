@@ -1,6 +1,6 @@
 from rest_framework import serializers
-from .models import CartItem, Cart
-from catalog_app.serializers import ProductListSerializer
+from .models import CartItem, Cart, WishList
+from catalog_app.serializers import ProductListSerializer, ProductDetailSerializer
 
 class CartItemSerializer(serializers.ModelSerializer):
     product = ProductListSerializer(read_only=True)
@@ -16,7 +16,6 @@ class CartItemSerializer(serializers.ModelSerializer):
 
 class CartSerializer(serializers.ModelSerializer):
     cart_items = CartItemSerializer(read_only=True, many=True)
-
     total = serializers.SerializerMethodField()
 
     class Meta:
@@ -26,3 +25,10 @@ class CartSerializer(serializers.ModelSerializer):
     def get_total(self, cart):
         items = cart.cart_items.all()        
         return sum((item.quantity * item.product.price) for item in items)
+
+class WishListSerializer(serializers.ModelSerializer):
+    product = ProductDetailSerializer(many=True, read_only=True)
+    
+    class Meta:
+        model = WishList
+        fields = ['id', 'product', 'user', 'created_at', 'updated_at']

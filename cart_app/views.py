@@ -4,8 +4,8 @@ from django.shortcuts import render
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from .models import Cart, CartItem
-from .serializers import CartItemSerializer, CartSerializer
+from .models import Cart, CartItem, WishList
+from .serializers import CartItemSerializer, CartSerializer, WishListSerializer
 
 from catalog_app.models import Product
 
@@ -35,3 +35,23 @@ def update_cart_item_quantity(request, cart_code, item_id):
     serializer = CartItemSerializer(cart_item)
 
     return Response({"data": serializer.data, "message": "CartItem updated Succefully"})
+
+@api_view(['POST'])
+def toggle_wishlist(request, product_id):
+    product = Product.objects.get(id=product_id)
+    user = request.user
+    wishlist, created = WishList.objects.get_or_create(user=user)
+
+    if wishlist.product.filter(id=product.id).exists():
+        wishlist.product.remove(product)
+        message = 'product deleted from wishlsit'
+    else:
+        wishlist.product.add(product)
+        message = 'product added to wishlist'
+    serializer = WishListSerializer(wishlist)
+    return Response(
+        {
+            'message': message,
+            'data': serializer.data
+        }
+    )
