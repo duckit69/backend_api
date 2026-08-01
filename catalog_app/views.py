@@ -1,5 +1,5 @@
 from django.shortcuts import render
-
+from django.db.models import Q
 # Create your views here.
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
@@ -65,3 +65,15 @@ def review_manager(request, product_id):
     return Response(serializer.data)
 
 
+@api_view(['GET'])
+def product_search(request):
+    query = request.query_params.get('query')
+
+    # maybe it does not make sense to search category and product name 
+    # just testing Q object and playing with | & ~
+    products = Product.objects.filter(Q(name__icontains=query)
+                                      | Q(description__icontains=query)
+                                      | Q(category__name__name=query))
+
+    serializer = ProductListSerializer(products, many=True)
+    return Response(serializer.data)
