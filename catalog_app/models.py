@@ -24,6 +24,9 @@ class Category(models.Model):
         
         super().save(*args, **kwargs)
 
+    def __str__(self):
+        return f"{self.name}"
+
 class Product(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField()

@@ -1,0 +1,10 @@
+Currently:
+    we are retrieving cart by cart code 
+Problem:
+    what if we manupilate the cart_code passed in url?
+    a different cart will be returned 
+Solution:
+    Cart and User must be many to one relationship
+    Only one active cart per User
+    Retrive the active cart of the logged in User
+    ( what if user is anonymous? )
