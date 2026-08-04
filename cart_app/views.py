@@ -1,16 +1,21 @@
 from django.shortcuts import render
-
+from django.conf import settings
+from django.http import HttpResponse
+from django.views.decorators.csrf import csrf_exempt
 # Create your views here.
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from .models import Cart, CartItem, WishList
+from .models import Cart, CartItem, WishList, Order, OrderItem
 from .serializers import CartItemSerializer, CartSerializer, WishListSerializer
 
 from catalog_app.models import Product
 
+# Stripe related imports
 import stripe
-from django.conf import settings
+client = stripe.StripeClient(settings.STRIPE_SECRET_KEY)
+endpoint_secret = 'whsec_...'
+
 
 @api_view(['POST', 'DELETE'])
 def cart_item_manager(request, cart_code):
@@ -75,7 +80,6 @@ def toggle_wishlist(request, product_id):
 
 
 
-client = stripe.StripeClient(settings.STRIPE_SECRET_KEY)
 @api_view(['POST'])
 def create_checkout_session(request):
 
@@ -99,13 +103,60 @@ def create_checkout_session(request):
     
     try:
         checkout_session = client.v1.checkout.sessions.create(params={
+            'customer_email': request.user.email,
             'mode': 'payment',
             'line_items': processed_cart,
-            'success_url': 'http://127.0.0.1:8000/success'
+            'success_url': 'http://127.0.0.1:8000/success',
+            'metadata' : {'cart_code':cart_code}
         })
     except Exception as e:
         return Response({'error': str(e)}, status=400)
 
-    print(checkout_session)
     return Response({'id':checkout_session.id, 'url': checkout_session.url}, status=303)
 
+
+@csrf_exempt
+def my_webhook_view(request):
+  print('FROM WEBHOOK')
+  payload = request.body
+  sig_header = request.META['HTTP_STRIPE_SIGNATURE']
+  event = None
+
+  try:
+    event = client.construct_event(payload, sig_header, endpoint_secret)
+  except ValueError as e:
+    # Invalid payload
+    return HttpResponse(status=400)
+  except stripe.error.SignatureVerificationError as e:
+    # Invalid signature
+    return HttpResponse(status=400)
+
+  if (event['type'] == 'checkout.session.completed' or event['type'] == 'checkout.session.async_payment_succeeded'):
+    session = event['data']['object']
+    cart_code = session.get('metadata', {}).get('cart_code')
+    fulfill_checkout(session, cart_code)
+  return HttpResponse(status=200)
+
+def fulfill_checkout(session, cart_code):
+    order = Order.objects.create(
+      stripe_checkout_id = session['id'],
+      amout = session['amount_total'],
+      customer_email = session['customer_email'],
+      status = 'Pending'
+      )
+
+    cart = Cart.objects.get(cart_code=cart_code)
+    cart_items = cart.cart_items.all()
+
+    for item in cart_items:
+       OrderItem.objects.create(
+          order,
+          product = item.product,
+          quantity = item.quantity
+       )
+
+    # after this cart is paid we can delete it 
+    # may be keep it for future statistics ?
+    cart.delete()
+    print('FROM FULFILL')
+    print(session)
