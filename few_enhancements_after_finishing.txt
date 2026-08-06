@@ -8,3 +8,6 @@ Solution:
     Only one active cart per User
     Retrive the active cart of the logged in User
     ( what if user is anonymous? )
+
+
+TEST THE STRIPE LOGIC

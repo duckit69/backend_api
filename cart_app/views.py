@@ -14,7 +14,7 @@ from catalog_app.models import Product
 # Stripe related imports
 import stripe
 client = stripe.StripeClient(settings.STRIPE_SECRET_KEY)
-endpoint_secret = 'whsec_...'
+endpoint_secret = settings.STRIPE_WEBHOOK_SEC
 
 
 @api_view(['POST', 'DELETE'])
@@ -114,10 +114,8 @@ def create_checkout_session(request):
 
     return Response({'id':checkout_session.id, 'url': checkout_session.url}, status=303)
 
-
 @csrf_exempt
 def my_webhook_view(request):
-  print('FROM WEBHOOK')
   payload = request.body
   sig_header = request.META['HTTP_STRIPE_SIGNATURE']
   event = None
@@ -133,14 +131,15 @@ def my_webhook_view(request):
 
   if (event['type'] == 'checkout.session.completed' or event['type'] == 'checkout.session.async_payment_succeeded'):
     session = event['data']['object']
-    cart_code = session.get('metadata', {}).get('cart_code')
+    cart_code = session.to_dict().get('metadata', {}).get('cart_code')
+    print('BEFORE calling fulfill')
     fulfill_checkout(session, cart_code)
   return HttpResponse(status=200)
 
 def fulfill_checkout(session, cart_code):
     order = Order.objects.create(
       stripe_checkout_id = session['id'],
-      amout = session['amount_total'],
+      amount = session['amount_total'],
       customer_email = session['customer_email'],
       status = 'Pending'
       )
@@ -150,7 +149,7 @@ def fulfill_checkout(session, cart_code):
 
     for item in cart_items:
        OrderItem.objects.create(
-          order,
+          order=order,
           product = item.product,
           quantity = item.quantity
        )

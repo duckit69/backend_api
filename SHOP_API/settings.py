@@ -30,8 +30,8 @@ SECRET_KEY = 'django-insecure-5%l3!5hf$j#u@%fb^*)3zvdnxnz@dz3h_pd&t#(qic-x(85ir_
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
-
+ALLOWED_HOSTS = ['127.0.0.1', 'poach-scope-harmony.ngrok-free.dev']
+CSRF_TRUSTED_ORIGINS = ['https://*.ngrok-free.dev']
 
 # Application definition
 
@@ -134,3 +134,4 @@ AUTH_USER_MODEL = "user_app.User"
 
 STRIPE_SECRET_KEY=os.getenv('STRIPE_SECRET_KEY')
 STRIPE_PUBLISHABLE_KEY=os.getenv('STRIPE_PUBLIC_KEY')
+STRIPE_WEBHOOK_SEC=os.getenv('STRIPE_WEBHOOK_SEC')
