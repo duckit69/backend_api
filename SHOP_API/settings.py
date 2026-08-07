@@ -25,16 +25,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-5%l3!5hf$j#u@%fb^*)3zvdnxnz@dz3h_pd&t#(qic-x(85ir_'
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = bool(os.getenv('DEBUG', default=0))
 
-ALLOWED_HOSTS = ['127.0.0.1', 'poach-scope-harmony.ngrok-free.dev']
-CSRF_TRUSTED_ORIGINS = ['https://*.ngrok-free.dev']
+ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS','127.0.0.1').split(',')
 
 # Application definition
-
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -83,8 +81,14 @@ WSGI_APPLICATION = 'SHOP_API.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.{}'.format(
+          os.getenv('DATABASE_ENGINE', 'sqlite3')  
+        ),
+        'NAME': os.getenv('DATABASE_NAME', 'polls'),
+        'USER': os.getenv('DATABASE_USERNAME', 'user'),
+        'PASSWORD': os.getenv('DATABASE_PASSWORD', 'password'),
+        'HOST': os.getenv('DATABASE_HOST', '127.0.0.1'),
+        'PORT': os.getenv('DATABASE_PORT', 5432),
     }
 }
 
@@ -130,6 +134,8 @@ USE_TZ = True
 STATIC_URL = 'static/'
 MEDIA_URL = 'media/'
 MEDIA_ROOT = BASE_DIR/'media'
+
+# User Model
 AUTH_USER_MODEL = "user_app.User"
 
 STRIPE_SECRET_KEY=os.getenv('STRIPE_SECRET_KEY')
