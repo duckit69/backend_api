@@ -141,7 +141,7 @@ def fulfill_checkout(session, cart_code):
       stripe_checkout_id = session['id'],
       amount = session['amount_total'],
       customer_email = session['customer_email'],
-      status = 'Pending'
+      status = 'Paid'
       )
 
     cart = Cart.objects.get(cart_code=cart_code)
