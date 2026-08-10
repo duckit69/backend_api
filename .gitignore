@@ -16,3 +16,7 @@ staticfiles/
 # Environment files
 .env
 .env.*
+
+
+# my personal files 
+few_enhancements_after_finishing.txt

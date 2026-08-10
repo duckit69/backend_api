@@ -28,7 +28,7 @@ load_dotenv()
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = bool(os.getenv('DEBUG', default=0))
+DEBUG = True
 
 ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS').split(',')
 
@@ -79,16 +79,18 @@ WSGI_APPLICATION = 'SHOP_API.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
+PGSERVICEFILE = os.getenv('PGSERVICEFILE', str(BASE_DIR / '.pg_service.conf'))
+PGPASSFILE = os.getenv('PGPASSFILE', str(BASE_DIR / '.my_pgpass'))
+os.environ.setdefault('PGSERVICEFILE', PGSERVICEFILE)
+os.environ.setdefault('PGPASSFILE', PGPASSFILE)
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.{}'.format(
-          os.getenv('DATABASE_ENGINE', 'sqlite3')  
-        ),
-        'NAME': os.getenv('DATABASE_NAME', 'polls'),
-        'USER': os.getenv('DATABASE_USERNAME', 'user'),
-        'PASSWORD': os.getenv('DATABASE_PASSWORD', 'password'),
-        'HOST': os.getenv('DATABASE_HOST', '127.0.0.1'),
-        'PORT': os.getenv('DATABASE_PORT', 5432),
+        'ENGINE': 'django.db.backends.postgresql',
+        "OPTIONS": {
+            "service": "my_service",
+            "passfile": str(BASE_DIR / '.my_pgpass'),
+        },
     }
 }
 
