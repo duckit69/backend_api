@@ -1,0 +1,27 @@
+# Version Control
+.git/
+.gitignore
+
+# Python cache & compilation
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+dist/
+build/
+
+# Virtual Environment
+.venv/
+venv/
+env/
+
+# Django specific
+staticfiles/
+media/
+*.log
+db.sqlite3
+.coverage
+htmlcov/
+.pytest_cache/
