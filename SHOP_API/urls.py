@@ -25,15 +25,15 @@ from rest_framework_simplejwt.views import (
 )
 
 from . import views
+from api_config import api_url
 
 urlpatterns = [
-    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-    path('api/token/verify/', TokenVerifyView.as_view(), name='token_verify'),
+    path(api_url('token'), TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path(api_url('token/refresh/'), TokenRefreshView.as_view(), name='token_refresh'),
+    path(api_url('token/verify/'), TokenVerifyView.as_view(), name='token_verify'),
+    path(api_url('users/'), include('user_app.urls')),
+    path(api_url('catalog/'), include('catalog_app.urls')),
+    path(api_url('cart/'), include('cart_app.urls')),
     path('admin/', admin.site.urls),
-    path('users/', include('user_app.urls')),
-    path('catalog/', include('catalog_app.urls')),
-    path('cart/', include('cart_app.urls')),
-    path('success', view=views.success, name='test')
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

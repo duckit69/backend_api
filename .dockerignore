@@ -25,3 +25,7 @@ db.sqlite3
 .coverage
 htmlcov/
 .pytest_cache/
+
+# Environment Variables
+.env
+.env_docker

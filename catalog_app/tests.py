@@ -4,6 +4,7 @@ from rest_framework.test import APITestCase
 from rest_framework import status
 from decimal import Decimal
 
+from api_config import api_url
 from .models import Category, Product, Review, ProductRating
 
 User = get_user_model()
@@ -355,14 +356,14 @@ class ProductListAPITest(APITestCase):
 
     def test_product_list_only_featured(self):
         """Test product list returns only featured products"""
-        response = self.client.get('/api/products/')
+        response = self.client.get(api_url('products/'))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 1)
         self.assertEqual(response.data[0]['name'], 'Laptop')
 
     def test_featured_product_fields(self):
         """Test featured product contains required fields"""
-        response = self.client.get('/api/products/')
+        response = self.client.get(api_url('products/'))
         product = response.data[0]
         self.assertIn('id', product)
         self.assertIn('name', product)
@@ -385,20 +386,20 @@ class ProductDetailAPITest(APITestCase):
 
     def test_get_product_detail(self):
         """Test retrieving product by slug"""
-        response = self.client.get(f'/api/products/{self.product.slug}/')
+        response = self.client.get(api_url(f'products/{self.product.slug}/'))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['name'], 'Laptop')
         self.assertEqual(response.data['slug'], 'laptop')
 
     def test_product_detail_includes_description(self):
         """Test product detail includes description"""
-        response = self.client.get(f'/api/products/{self.product.slug}/')
+        response = self.client.get(api_url(f'products/{self.product.slug}/'))
         self.assertIn('description', response.data)
         self.assertEqual(response.data['description'], 'A powerful laptop computer')
 
     def test_product_detail_nonexistent(self):
         """Test 404 for nonexistent product"""
-        response = self.client.get('/api/products/nonexistent-product/')
+        response = self.client.get(api_url('products/nonexistent-product/'))
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
 
@@ -412,13 +413,13 @@ class CategoryListAPITest(APITestCase):
 
     def test_category_list(self):
         """Test listing all categories"""
-        response = self.client.get('/api/categories/')
+        response = self.client.get(api_url('categories/'))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 2)
 
     def test_category_list_fields(self):
         """Test category list contains required fields"""
-        response = self.client.get('/api/categories/')
+        response = self.client.get(api_url('categories/'))
         category = response.data[0]
         self.assertIn('id', category)
         self.assertIn('name', category)
@@ -446,14 +447,14 @@ class CategoryDetailAPITest(APITestCase):
 
     def test_get_category_detail(self):
         """Test retrieving category by slug"""
-        response = self.client.get(f'/api/categories/{self.category.slug}/')
+        response = self.client.get(api_url(f'categories/{self.category.slug}/'))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['name'], 'Electronics')
 
     def test_category_detail_includes_products(self):
         """Test category detail includes product IDs"""
-        response = self.client.get(f'/api/categories/{self.category.slug}/')
-        self.assertIn('products', response.data)
+        response = self.client.get(api_url(f'categories/{self.category.slug}/'))
+        self.assertIn('products', response)
         self.assertEqual(len(response.data['products']), 2)
 
 
@@ -483,7 +484,7 @@ class ReviewAPITest(APITestCase):
             'review': 'Excellent product!'
         }
         response = self.client.post(
-            f'/api/products/{self.product.id}/review/',
+            api_url(f'products/{self.product.id}/review/'),
             data
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -495,8 +496,8 @@ class ReviewAPITest(APITestCase):
             'rating': 5,
             'review': 'Great product!'
         }
-        self.client.post(f'/api/products/{self.product.id}/review/', data)
-        response = self.client.post(f'/api/products/{self.product.id}/review/', data)
+        self.client.post(api_url(f'products/{self.product.id}/review/'), data)
+        response = self.client.post(api_url(f'products/{self.product.id}/review/'), data)
         self.assertEqual(response.status_code, status.HTTP_409_CONFLICT)
 
     def test_update_review(self):
@@ -513,7 +514,7 @@ class ReviewAPITest(APITestCase):
             'review': 'Changed my mind, excellent!'
         }
         response = self.client.put(
-            f'/api/products/{self.product.id}/review/',
+            api_url(f'products/{self.product.id}/review/'),
             data
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -531,7 +532,7 @@ class ReviewAPITest(APITestCase):
             review='Excellent'
         )
         
-        response = self.client.delete(f'/api/products/{self.product.id}/review/')
+        response = self.client.delete(api_url(f'products/{self.product.id}/review/'))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertFalse(Review.objects.filter(product=self.product).exists())
 
@@ -559,24 +560,24 @@ class ProductSearchAPITest(APITestCase):
 
     def test_search_by_name(self):
         """Test searching product by name"""
-        response = self.client.get('/api/products/search/?query=Laptop')
+        response = self.client.get(api_url('products/search/?query=Laptop'))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertGreater(len(response.data), 0)
 
     def test_search_by_description(self):
         """Test searching product by description"""
-        response = self.client.get('/api/products/search/?query=computing')
+        response = self.client.get(api_url('products/search/?query=computing'))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertGreater(len(response.data), 0)
 
     def test_search_no_results(self):
         """Test search with no matching results"""
-        response = self.client.get('/api/products/search/?query=nonexistent')
+        response = self.client.get(api_url('products/search/?query=nonexistent'))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 0)
 
     def test_search_case_insensitive(self):
         """Test search is case insensitive"""
-        response = self.client.get('/api/products/search/?query=laptop')
+        response = self.client.get(api_url('products/search/?query=laptop'))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertGreater(len(response.data), 0)

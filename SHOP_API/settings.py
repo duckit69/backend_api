@@ -79,18 +79,14 @@ WSGI_APPLICATION = 'SHOP_API.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
-PGSERVICEFILE = os.getenv('PGSERVICEFILE', str(BASE_DIR / '.pg_service.conf'))
-PGPASSFILE = os.getenv('PGPASSFILE', str(BASE_DIR / '.my_pgpass'))
-os.environ.setdefault('PGSERVICEFILE', PGSERVICEFILE)
-os.environ.setdefault('PGPASSFILE', PGPASSFILE)
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        "OPTIONS": {
-            "service": "my_service",
-            "passfile": str(BASE_DIR / '.my_pgpass'),
-        },
+        'NAME': os.getenv('DB_NAME'),
+        'USER': os.getenv('DB_USER'),
+        'PASSWORD': os.getenv('DB_PASS'),
+        'HOST': os.getenv('DB_HOST'),
+        'PORT': os.getenv('DB_PORT'),      
     }
 }
 
@@ -143,3 +139,7 @@ AUTH_USER_MODEL = "user_app.User"
 STRIPE_SECRET_KEY=os.getenv('STRIPE_SECRET_KEY')
 STRIPE_PUBLISHABLE_KEY=os.getenv('STRIPE_PUBLIC_KEY')
 STRIPE_WEBHOOK_SEC=os.getenv('STRIPE_WEBHOOK_SEC')
+
+API_BASE='api/v1'
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

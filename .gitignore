@@ -16,7 +16,7 @@ staticfiles/
 # Environment files
 .env
 .env.*
-
-
+.env*
+.env_docker
 # my personal files 
 few_enhancements_after_finishing.txt

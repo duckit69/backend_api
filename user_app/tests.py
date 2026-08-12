@@ -3,6 +3,8 @@ from django.contrib.auth import get_user_model
 from rest_framework.test import APITestCase
 from rest_framework import status
 
+from api_config import api_url
+
 User = get_user_model()
 
 
@@ -84,13 +86,13 @@ class UserListAPITest(APITestCase):
 
     def test_list_all_users(self):
         """Test listing all users"""
-        response = self.client.get('/api/users/')
+        response = self.client.get(api_url('users/'))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 2)
 
     def test_user_list_contains_required_fields(self):
         """Test user list response contains required fields"""
-        response = self.client.get('/api/users/')
+        response = self.client.get(api_url('users/'))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         user_data = response.data[0]
         self.assertIn('username', user_data)
@@ -101,19 +103,19 @@ class UserListAPITest(APITestCase):
     def test_user_list_empty(self):
         """Test user list when no users exist"""
         User.objects.all().delete()
-        response = self.client.get('/api/users/')
+        response = self.client.get(api_url('users/'))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 0)
 
     def test_list_users_count(self):
         """Test correct number of users in response"""
-        response = self.client.get('/api/users/')
+        response = self.client.get(api_url('users/'))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data[0]['username'], 'user1')
         self.assertEqual(response.data[1]['username'], 'user2')
 
     def test_user_list_password_not_exposed(self):
         """Test that password is not exposed in API response"""
-        response = self.client.get('/api/users/')
+        response = self.client.get(api_url('users/'))
         user_data = response.data[0]
         self.assertNotIn('password', user_data)

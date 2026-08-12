@@ -4,6 +4,7 @@ from rest_framework.test import APITestCase
 from rest_framework import status
 from decimal import Decimal
 
+from api_config import api_url
 from catalog_app.models import Category, Product
 from .models import Cart, CartItem, WishList, Order, OrderItem
 
@@ -82,13 +83,29 @@ class CartItemAPITest(APITestCase):
             price=Decimal('999.99'),
             category=category
         )
-        self.cart = Cart.objects.create(cart_code='CART001')
+        self.cart = Cart.objects.create(cart_code='547')
+        self.test_user = User.objects.create_user(
+            username='test_user',
+            password='test_user',
+            email='test_user@test_user.com',
+            profile_pic_url='https://example.com/pic.jpg'
+        ) 
+        self.user = {
+            "username": "test_user",
+            "password": "test_user"
+        }
+
 
     def test_add_item_to_cart(self):
         """Test adding product to cart"""
         data = {'product_id': self.product.id}
+        token = self.client.post(
+            api_url('token/'),
+            self.user
+        ).json()
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + token['access'])
         response = self.client.post(
-            f'/api/cart/{self.cart.cart_code}/items/',
+            api_url(f'cart/{self.cart.cart_code}/items/'),
             data
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -97,12 +114,18 @@ class CartItemAPITest(APITestCase):
     def test_add_item_creates_cart_if_not_exists(self):
         """Test adding item creates cart if cart_code doesn't exist"""
         data = {'product_id': self.product.id}
+
+        token = self.client.post(api_url('token/'), self.user).json()
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + token['access'])
+        
         response = self.client.post(
-            '/api/cart/NEWCART123/items/',
+            api_url('cart/44/items/'),
             data
         )
+
+        print("TEST: DATA:", response)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertTrue(Cart.objects.filter(cart_code='NEWCART123').exists())
+        self.assertTrue(Cart.objects.filter(cart_code='44').exists())
 
     def test_remove_item_from_cart(self):
         """Test removing product from cart"""
@@ -110,7 +133,7 @@ class CartItemAPITest(APITestCase):
         
         data = {'product_id': self.product.id}
         response = self.client.delete(
-            f'/api/cart/{self.cart.cart_code}/items/',
+            api_url(f'cart/{self.cart.cart_code}/items/'),
             data
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -126,11 +149,11 @@ class CartItemAPITest(APITestCase):
         )
         
         self.client.post(
-            f'/api/cart/{self.cart.cart_code}/items/',
+            api_url(f'cart/{self.cart.cart_code}/items/'),
             {'product_id': self.product.id}
         )
         self.client.post(
-            f'/api/cart/{self.cart.cart_code}/items/',
+            api_url(f'cart/{self.cart.cart_code}/items/'),
             {'product_id': product2.id}
         )
         
@@ -160,7 +183,7 @@ class UpdateCartItemQuantityTest(APITestCase):
         """Test updating cart item quantity"""
         data = {'quantity': 3}
         response = self.client.patch(
-            f'/api/cart/{self.cart.cart_code}/items/{self.item.id}/',
+            api_url(f'cart/{self.cart.cart_code}/items/{self.item.id}/'),
             data
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -172,7 +195,7 @@ class UpdateCartItemQuantityTest(APITestCase):
         """Test updating quantity to zero"""
         data = {'quantity': 0}
         response = self.client.patch(
-            f'/api/cart/{self.cart.cart_code}/items/{self.item.id}/',
+            api_url(f'cart/{self.cart.cart_code}/items/{self.item.id}/'),
             data
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -254,7 +277,7 @@ class WishListAPITest(APITestCase):
 
     def test_add_product_to_wishlist(self):
         """Test adding product to wishlist"""
-        response = self.client.post(f'/api/wishlist/{self.product.id}/')
+        response = self.client.post(api_url(f'wishlist/{self.product.id}/'))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn('added to wishlist', response.data['message'])
         
@@ -266,7 +289,7 @@ class WishListAPITest(APITestCase):
         wishlist = WishList.objects.create(user=self.user)
         wishlist.product.add(self.product)
         
-        response = self.client.post(f'/api/wishlist/{self.product.id}/')
+        response = self.client.post(api_url(f'wishlist/{self.product.id}/'))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn('deleted from wishlsit', response.data['message'])
         
@@ -277,7 +300,7 @@ class WishListAPITest(APITestCase):
         """Test toggling creates wishlist if doesn't exist"""
         self.assertFalse(WishList.objects.filter(user=self.user).exists())
         
-        response = self.client.post(f'/api/wishlist/{self.product.id}/')
+        response = self.client.post(api_url(f'wishlist/{self.product.id}/'))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(WishList.objects.filter(user=self.user).exists())
 
@@ -414,7 +437,7 @@ class CartTotalCalculationTest(APITestCase):
 
     def test_empty_cart_total(self):
         """Test empty cart has zero total"""
-        response = self.client.get(f'/api/cart/{self.cart.cart_code}/')
+        response = self.client.get(api_url(f'cart/{self.cart.cart_code}/'))
         if response.status_code == status.HTTP_200_OK:
             self.assertEqual(response.data['total'], 0)
 
@@ -425,7 +448,7 @@ class CartTotalCalculationTest(APITestCase):
             product=self.product1,
             quantity=1
         )
-        response = self.client.get(f'/api/cart/{self.cart.cart_code}/')
+        response = self.client.get(api_url(f'cart/{self.cart.cart_code}/'))
         if response.status_code == status.HTTP_200_OK:
             self.assertEqual(float(response.data['total']), 999.99)
 
@@ -441,7 +464,7 @@ class CartTotalCalculationTest(APITestCase):
             product=self.product2,
             quantity=2
         )
-        response = self.client.get(f'/api/cart/{self.cart.cart_code}/')
+        response = self.client.get(api_url(f'cart/{self.cart.cart_code}/'))
         if response.status_code == status.HTTP_200_OK:
             expected_total = 999.99 + (29.99 * 2)
             self.assertAlmostEqual(float(response.data['total']), expected_total, places=2)
