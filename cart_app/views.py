@@ -52,11 +52,17 @@ def update_cart_item_quantity(request, cart_code, item_id):
 
     cart_item = CartItem.objects.get(id=item_id)
     cart_item.quantity = quantity
-    cart_item.save()
-
+    if quantity <= 0:
+        cart_item.delete()
+        message = 'CartItem Removed'
+        status = 204
+    else:
+       cart_item.save()
+       message = 'CartItem updated Succefully'
+       status = 200
     serializer = CartItemSerializer(cart_item)
 
-    return Response({"data": serializer.data, "message": "CartItem updated Succefully"})
+    return Response({"data": serializer.data, "message": message}, status=status)
 
 @api_view(['POST'])
 def toggle_wishlist(request, product_id):
@@ -157,5 +163,3 @@ def fulfill_checkout(session, cart_code):
     # after this cart is paid we can delete it 
     # may be keep it for future statistics ?
     cart.delete()
-    print('FROM FULFILL')
-    print(session)

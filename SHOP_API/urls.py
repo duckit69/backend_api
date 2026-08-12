@@ -24,16 +24,15 @@ from rest_framework_simplejwt.views import (
     TokenVerifyView
 )
 
-from . import views
-from api_config import api_url
+from django.conf import settings
 
 urlpatterns = [
-    path(api_url('token'), TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path(api_url('token/refresh/'), TokenRefreshView.as_view(), name='token_refresh'),
-    path(api_url('token/verify/'), TokenVerifyView.as_view(), name='token_verify'),
-    path(api_url('users/'), include('user_app.urls')),
-    path(api_url('catalog/'), include('catalog_app.urls')),
-    path(api_url('cart/'), include('cart_app.urls')),
+    path(f"{settings.API_BASE}/token/", TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path(f"{settings.API_BASE}/token/refresh/", TokenRefreshView.as_view(), name='token_refresh'),
+    path(f"{settings.API_BASE}/token/verify/", TokenVerifyView.as_view(), name='token_verify'),
+    path(f"{settings.API_BASE}/users/", include('user_app.urls')),
+    path(f"{settings.API_BASE}/catalog/", include('catalog_app.urls')),
+    path(f"{settings.API_BASE}/cart/", include('cart_app.urls')),
     path('admin/', admin.site.urls),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

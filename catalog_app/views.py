@@ -73,7 +73,7 @@ def product_search(request):
     # just testing Q object and playing with | & ~
     products = Product.objects.filter(Q(name__icontains=query)
                                       | Q(description__icontains=query)
-                                      | Q(category__name__name=query))
+                                      | Q(category__name__icontains=query))
 
     serializer = ProductListSerializer(products, many=True)
     return Response(serializer.data)

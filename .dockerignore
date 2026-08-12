@@ -28,4 +28,3 @@ htmlcov/
 
 # Environment Variables
 .env
-.env_docker

@@ -32,6 +32,10 @@ DEBUG = True
 
 ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS').split(',')
 
+API_BASE='api/v1'
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
 # Application definition
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -140,6 +144,3 @@ STRIPE_SECRET_KEY=os.getenv('STRIPE_SECRET_KEY')
 STRIPE_PUBLISHABLE_KEY=os.getenv('STRIPE_PUBLIC_KEY')
 STRIPE_WEBHOOK_SEC=os.getenv('STRIPE_WEBHOOK_SEC')
 
-API_BASE='api/v1'
-
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

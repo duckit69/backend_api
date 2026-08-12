@@ -24,7 +24,7 @@ class CategoryListSerializer(serializers.ModelSerializer):
     products = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
     class Meta:
         model = Category
-        fields = ['id', 'name', 'image', 'slug']
+        fields = ['id', 'name', 'image', 'slug', 'products']
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
